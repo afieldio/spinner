@@ -1,0 +1,142 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<title>Spiner</title>
+</head>
+<style type="text/css">
+	.container{
+		width: 960px;
+		margin: 0px auto;
+	}
+</style>
+<body>
+
+</body>
+
+<script type="text/javascript">
+	
+	//Check the Pixel Ratio of the scren
+	var PIXEL_RATIO = (function () {
+	    var ctx = document.createElement("canvas").getContext("2d"),
+	        dpr = window.devicePixelRatio || 1,
+	        bsr = ctx.webkitBackingStorePixelRatio ||
+	              ctx.mozBackingStorePixelRatio ||
+	              ctx.msBackingStorePixelRatio ||
+	              ctx.oBackingStorePixelRatio ||
+	              ctx.backingStorePixelRatio || 1;
+
+	    return dpr / bsr;
+	})();
+
+	//Make a cnavas using the pixel ratio of the screen
+	createHiDPICanvas = function(w, h, ratio) {
+	    if (!ratio) { ratio = PIXEL_RATIO; }
+	    var can = document.createElement("canvas");
+	    can.width = w * ratio;
+	    can.height = h * ratio;
+	    can.style.width = w + "px";
+	    can.style.height = h + "px";
+	    can.getContext("2d").setTransform(ratio, 0, 0, ratio, 0, 0);
+	    return can;
+	}
+
+	//Instantiate the canvas and add it to the screen
+	var canvas = createHiDPICanvas(960, 700);
+	document.body.appendChild(canvas);
+	var position = 0;
+	var framesPerSecond = 1;
+	colors = generate_color();
+	var twoPi = 2 * Math.PI;
+	var angle = 0;
+	var numElements = 40;
+	var radius = 200;
+	var step = twoPi/ numElements;
+
+	var xPos = [];
+	var yPos = [];
+	var circles = [];
+	var circle = '';
+	
+	for (var i = 0; i <= numElements; i++) {
+		x = canvas.width/2 + radius * Math.sin(angle);
+		xPos.push(x);
+		y = canvas.height/2 + radius * Math.cos(angle);
+		yPos.push(y);
+		angle += step;
+	};
+
+
+	function draw(){
+	
+		if (position < 60){
+			position += 1;
+			colors.push(colors.shift());
+		}else{
+			position = 0;
+		}
+		render(colors, circles);
+		setTimeout(draw, 16 / framesPerSecond);
+	}
+
+	function Circle (x, y, radius, line_width, line_style, fill_style) {
+		this.x = x;
+		this.y = y;
+		this.radius = radius;
+		this.lineWidth = line_width;
+		this.lineStyle = line_style;
+		this.fillStyle = fill_style;
+	}
+
+	function render(colors, circles){
+		if (canvas.getContext) {
+
+			context = canvas.getContext('2d');
+			
+			for(var i = 0; i < numElements; i++) {
+				var x = xPos[i];
+				var y = yPos[i];
+				var circle = new Circle (x,y, 10, 1, colors[i], colors[i]);
+				//context.clearRect(0,0, canvas.width, canvas.height);
+				context.save();
+				context.beginPath();
+				context.arc(circle.x, circle.y, circle.radius, 0, twoPi, false);
+				context.fillStyle = circle.fillStyle;
+				context.fill();
+				context.lineWidth = circle.lineWidth;
+				context.strokeStyle = circle.strokeStyle;
+				context.stroke();
+			}
+		}
+	}
+
+
+	//Color handling
+	function byte2Hex(n)
+	{
+		var nybHexString = "0123456789ABCDEF";
+		return String(nybHexString.substr((n >> 4) & 0x0F,1)) + nybHexString.substr(n & 0x0F,1);
+	}
+
+	function RGB2Color(r,g,b)
+	{
+		return '#' + byte2Hex(r) + byte2Hex(g) + byte2Hex(b);
+	}
+
+	function generate_color(){
+		var frequency = .3;
+		var amplitude = 127;
+		var center = 128;
+		var colors = [];
+		for (var i = 0; i < 60; ++i)
+		{
+			v = Math.sin(frequency*i) * amplitude + center;
+			color = RGB2Color(v,v,v)
+			colors.push(color);
+		}
+		return colors
+	}
+	//render();
+	// animate(colors);
+	draw();
+</script>
+</html>
